@@ -1,8 +1,10 @@
 import os
 import shutil
+import json
 import tkinter as tk
 from tkinter import scrolledtext, filedialog, messagebox, colorchooser
 from tkinter import ttk
+from tkcalendar import Calendar, DateEntry
 
 class FalloutTerminalApp:
     def __init__(self, root):
@@ -37,6 +39,11 @@ class FalloutTerminalApp:
         edit_menu.add_command(label="Change Background Color", command=self.change_bg_color)
         edit_menu.add_command(label="Reset Colors to Default", command=self.reset_colors)
         menubar.add_cascade(label="Edit", menu=edit_menu)
+
+        # Calendar menu
+        calendar_menu = tk.Menu(menubar, tearoff=0, bg="black", fg="green")
+        calendar_menu.add_command(label="Show Calendar", command=self.show_calendar)
+        menubar.add_cascade(label="Calendar", menu=calendar_menu)
         
         root.config(menu=menubar)
 
@@ -52,12 +59,16 @@ class FalloutTerminalApp:
         self.current_directory = os.getcwd()
         self.display_current_directory()
 
+        # Load calendar events
+        self.events_file = "calendar_events.json"
+        self.calendar_events = self.load_events()
+
     def display_current_directory(self):
         self.text_area.insert(tk.END, f"\n{self.current_directory}> ", "prompt")
         self.text_area.see(tk.END)
 
     def execute_command(self, event):
-        command = self.command_entry.get()
+        command = self.command_entry.get().strip()
         self.text_area.insert(tk.END, f"{command}\n", "command")
         self.command_entry.delete(0, tk.END)
 
@@ -90,12 +101,18 @@ class FalloutTerminalApp:
                 self.text_area.insert(tk.END, f"Removed {command[3:]}\n", "output")
             except Exception as e:
                 self.text_area.insert(tk.END, f"Error: {e}\n", "error")
-        elif command == "/createnew":
+        elif command == "/new":
             self.new_file()
-        elif command == "/close":
-            self.close_app()
+        elif command == "/open":
+            self.open_file()
         elif command == "/save":
             self.save_file()
+        elif command == "/open_txt":
+            self.open_txt_file()
+        elif command == "/close":
+            self.close_app()
+        elif command == "/commands":
+            self.show_commands()
         else:
             self.text_area.insert(tk.END, "Invalid command\n", "error")
 
@@ -154,6 +171,58 @@ class FalloutTerminalApp:
 
     def close_app(self):
         self.root.quit()
+
+    def show_calendar(self):
+        cal_window = tk.Toplevel(self.root)
+        cal_window.title("Calendar")
+        cal_window.configure(bg="black")
+
+        cal = Calendar(cal_window, selectmode='day', background="black", foreground="green", headersbackground="black", headersforeground="green", selectbackground="gray", selectforeground="black", font=("Courier", 10))
+        cal.pack(pady=20)
+
+        event_entry = tk.Entry(cal_window, bg="black", fg="green", font=("Courier", 10), insertbackground="white")
+        event_entry.pack(fill='x')
+
+        save_button = ttk.Button(cal_window, text="Add Event", command=lambda: self.add_event(cal, event_entry))
+        save_button.pack(pady=10)
+
+        self.display_events(cal)
+
+    def add_event(self, calendar, event_entry):
+        date = calendar.selection_get()
+        event = event_entry.get()
+        if date and event:
+            if date not in self.calendar_events:
+                self.calendar_events[date] = []
+            self.calendar_events[date].append(event)
+            self.save_events()
+            event_entry.delete(0, tk.END)
+            self.display_events(calendar)
+
+    def display_events(self, calendar):
+        for date, events in self.calendar_events.items():
+            calendar.calevent_create(date, '\n'.join(events), 'message')
+
+    def save_events(self):
+        with open(self.events_file, 'w') as file:
+            json.dump(self.calendar_events, file)
+
+    def load_events(self):
+        if os.path.exists(self.events_file):
+            with open(self.events_file, 'r') as file:
+                return json.load(file)
+        return {}
+
+    def show_commands(self):w
+        commands = """
+        /new - Create a new file
+        /open - Open a file
+        /save - Save the current file
+        /open_txt - Open a .txt file
+        /close - Close the application
+        /commands - Show this list of commands
+        """
+        self.text_area.insert(tk.END, commands, "output")
 
 if __name__ == "__main__":
     root = tk.Tk()
