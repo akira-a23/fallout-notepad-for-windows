@@ -2,6 +2,7 @@ import os
 import shutil
 import tkinter as tk
 from tkinter import scrolledtext, filedialog, messagebox, colorchooser
+from tkinter import ttk
 
 class FalloutTerminalApp:
     def __init__(self, root):
@@ -9,11 +10,18 @@ class FalloutTerminalApp:
         self.root.title("Fallout 4 Terminal Notepad")
         self.root.configure(bg="black")
 
+        # Set style
+        style = ttk.Style()
+        style.theme_use('clam')
+        style.configure("TButton", background="gray", foreground="green", font=("Courier", 10))
+        style.configure("TLabel", background="black", foreground="green", font=("Courier", 10))
+        style.configure("TMenu", background="black", foreground="green", font=("Courier", 10))
+
         # Menu bar
         menubar = tk.Menu(root)
         
         # File menu
-        file_menu = tk.Menu(menubar, tearoff=0)
+        file_menu = tk.Menu(menubar, tearoff=0, bg="black", fg="green")
         file_menu.add_command(label="New", command=self.new_file)
         file_menu.add_command(label="Open", command=self.open_file)
         file_menu.add_command(label="Save", command=self.save_file)
@@ -24,9 +32,10 @@ class FalloutTerminalApp:
         menubar.add_cascade(label="File", menu=file_menu)
         
         # Edit menu
-        edit_menu = tk.Menu(menubar, tearoff=0)
+        edit_menu = tk.Menu(menubar, tearoff=0, bg="black", fg="green")
         edit_menu.add_command(label="Change Text Color", command=self.change_text_color)
         edit_menu.add_command(label="Change Background Color", command=self.change_bg_color)
+        edit_menu.add_command(label="Reset Colors to Default", command=self.reset_colors)
         menubar.add_cascade(label="Edit", menu=edit_menu)
         
         root.config(menu=menubar)
@@ -124,16 +133,24 @@ class FalloutTerminalApp:
             self.text_area.insert(tk.END, f"\nSaved file: {file_path}\n", "output")
 
     def change_text_color(self):
-        color = colorchooser.askcolor(title="Choose text color")[1]
-        if color:
-            self.text_area.config(fg=color)
-            self.command_entry.config(fg=color)
+        self.show_color_dialog("text")
 
     def change_bg_color(self):
-        color = colorchooser.askcolor(title="Choose background color")[1]
+        self.show_color_dialog("background")
+
+    def show_color_dialog(self, color_type):
+        color = colorchooser.askcolor(title="Choose color")[1]
         if color:
-            self.text_area.config(bg=color)
-            self.command_entry.config(bg=color)
+            if color_type == "text":
+                self.text_area.config(fg=color)
+                self.command_entry.config(fg=color)
+            elif color_type == "background":
+                self.text_area.config(bg=color)
+                self.command_entry.config(bg=color)
+
+    def reset_colors(self):
+        self.text_area.config(bg="black", fg="green")
+        self.command_entry.config(bg="black", fg="green")
 
     def close_app(self):
         self.root.quit()
@@ -142,4 +159,3 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = FalloutTerminalApp(root)
     root.mainloop()
-
