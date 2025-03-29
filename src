@@ -20,7 +20,7 @@ class FalloutTerminalApp:
         file_menu.add_separator()
         file_menu.add_command(label="Open .txt File", command=self.open_txt_file)
         file_menu.add_separator()
-        file_menu.add_command(label="Exit", command=root.quit)
+        file_menu.add_command(label="Exit", command=self.close_app)
         menubar.add_cascade(label="File", menu=file_menu)
         
         # Edit menu
@@ -81,9 +81,11 @@ class FalloutTerminalApp:
                 self.text_area.insert(tk.END, f"Removed {command[3:]}\n", "output")
             except Exception as e:
                 self.text_area.insert(tk.END, f"Error: {e}\n", "error")
-        elif command == "open":
-            self.open_file()
-        elif command == "save":
+        elif command == "/createnew":
+            self.new_file()
+        elif command == "/close":
+            self.close_app()
+        elif command == "/save":
             self.save_file()
         else:
             self.text_area.insert(tk.END, "Invalid command\n", "error")
@@ -133,7 +135,11 @@ class FalloutTerminalApp:
             self.text_area.config(bg=color)
             self.command_entry.config(bg=color)
 
+    def close_app(self):
+        self.root.quit()
+
 if __name__ == "__main__":
     root = tk.Tk()
     app = FalloutTerminalApp(root)
     root.mainloop()
+
