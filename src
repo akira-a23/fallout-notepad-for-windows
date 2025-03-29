@@ -1,0 +1,106 @@
+import os
+import tkinter as tk
+from tkinter import scrolledtext, filedialog, messagebox
+
+class FalloutTerminalApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Fallout 4 Terminal Notepad")
+        self.root.configure(bg="black")
+
+        # Menu bar
+        menubar = tk.Menu(root)
+        file_menu = tk.Menu(menubar, tearoff=0)
+        file_menu.add_command(label="New", command=self.new_file)
+        file_menu.add_command(label="Open", command=self.open_file)
+        file_menu.add_command(label="Save", command=self.save_file)
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=root.quit)
+        menubar.add_cascade(label="File", menu=file_menu)
+        root.config(menu=menubar)
+
+        # Text area
+        self.text_area = scrolledtext.ScrolledText(root, wrap=tk.WORD, bg="black", fg="green", font=("Courier", 10), insertbackground="white")
+        self.text_area.pack(expand=True, fill='both')
+
+        # Command entry
+        self.command_entry = tk.Entry(root, bg="black", fg="green", font=("Courier", 10), insertbackground="white")
+        self.command_entry.pack(fill='x')
+        self.command_entry.bind("<Return>", self.execute_command)
+
+        self.current_directory = os.getcwd()
+        self.display_current_directory()
+
+    def display_current_directory(self):
+        self.text_area.insert(tk.END, f"\n{self.current_directory}> ", "prompt")
+        self.text_area.see(tk.END)
+
+    def execute_command(self, event):
+        command = self.command_entry.get()
+        self.text_area.insert(tk.END, f"{command}\n", "command")
+        self.command_entry.delete(0, tk.END)
+
+        if command.startswith("cd "):
+            try:
+                os.chdir(command[3:])
+                self.current_directory = os.getcwd()
+            except FileNotFoundError:
+                self.text_area.insert(tk.END, "Directory not found\n", "error")
+        elif command == "ls":
+            for item in os.listdir(self.current_directory):
+                self.text_area.insert(tk.END, f"{item}\n", "output")
+        elif command.startswith("cp "):
+            try:
+                src, dst = command[3:].split()
+                shutil.copy(src, dst)
+                self.text_area.insert(tk.END, f"Copied {src} to {dst}\n", "output")
+            except Exception as e:
+                self.text_area.insert(tk.END, f"Error: {e}\n", "error")
+        elif command.startswith("mv "):
+            try:
+                src, dst = command[3:].split()
+                shutil.move(src, dst)
+                self.text_area.insert(tk.END, f"Moved {src} to {dst}\n", "output")
+            except Exception as e:
+                self.text_area.insert(tk.END, f"Error: {e}\n", "error")
+        elif command.startswith("rm "):
+            try:
+                os.remove(command[3:])
+                self.text_area.insert(tk.END, f"Removed {command[3:]}\n", "output")
+            except Exception as e:
+                self.text_area.insert(tk.END, f"Error: {e}\n", "error")
+        elif command == "open":
+            self.open_file()
+        elif command == "save":
+            self.save_file()
+        else:
+            self.text_area.insert(tk.END, "Invalid command\n", "error")
+
+        self.display_current_directory()
+
+    def new_file(self):
+        self.text_area.delete('1.0', tk.END)
+        self.text_area.insert(tk.END, "Creating a new file...\n", "output")
+
+    def open_file(self):
+        file_path = filedialog.askopenfilename()
+        if file_path:
+            with open(file_path, 'r') as file:
+                content = file.read()
+            self.text_area.delete('1.0', tk.END)
+            self.text_area.insert(tk.END, content)
+            self.text_area.insert(tk.END, f"\nOpened file: {file_path}\n", "output")
+
+    def save_file(self):
+        desktop_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
+        file_path = filedialog.asksaveasfilename(initialdir=desktop_path, defaultextension=".txt")
+        if file_path:
+            with open(file_path, 'w') as file:
+                content = self.text_area.get('1.0', tk.END)
+                file.write(content)
+            self.text_area.insert(tk.END, f"\nSaved file: {file_path}\n", "output")
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = FalloutTerminalApp(root)
+    root.mainloop()
