@@ -18,6 +18,8 @@ class FalloutTerminalApp:
         file_menu.add_command(label="Open", command=self.open_file)
         file_menu.add_command(label="Save", command=self.save_file)
         file_menu.add_separator()
+        file_menu.add_command(label="Open .txt File", command=self.open_txt_file)
+        file_menu.add_separator()
         file_menu.add_command(label="Exit", command=root.quit)
         menubar.add_cascade(label="File", menu=file_menu)
         
@@ -100,6 +102,15 @@ class FalloutTerminalApp:
             self.text_area.delete('1.0', tk.END)
             self.text_area.insert(tk.END, content)
             self.text_area.insert(tk.END, f"\nOpened file: {file_path}\n", "output")
+
+    def open_txt_file(self):
+        file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+        if file_path:
+            with open(file_path, 'r') as file:
+                content = file.read()
+            self.text_area.delete('1.0', tk.END)
+            self.text_area.insert(tk.END, content)
+            self.text_area.insert(tk.END, f"\nOpened .txt file: {file_path}\n", "output")
 
     def save_file(self):
         desktop_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
