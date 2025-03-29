@@ -1,6 +1,7 @@
 import os
+import shutil
 import tkinter as tk
-from tkinter import scrolledtext, filedialog, messagebox
+from tkinter import scrolledtext, filedialog, messagebox, colorchooser
 
 class FalloutTerminalApp:
     def __init__(self, root):
@@ -10,6 +11,8 @@ class FalloutTerminalApp:
 
         # Menu bar
         menubar = tk.Menu(root)
+        
+        # File menu
         file_menu = tk.Menu(menubar, tearoff=0)
         file_menu.add_command(label="New", command=self.new_file)
         file_menu.add_command(label="Open", command=self.open_file)
@@ -17,6 +20,13 @@ class FalloutTerminalApp:
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=root.quit)
         menubar.add_cascade(label="File", menu=file_menu)
+        
+        # Edit menu
+        edit_menu = tk.Menu(menubar, tearoff=0)
+        edit_menu.add_command(label="Change Text Color", command=self.change_text_color)
+        edit_menu.add_command(label="Change Background Color", command=self.change_bg_color)
+        menubar.add_cascade(label="Edit", menu=edit_menu)
+        
         root.config(menu=menubar)
 
         # Text area
@@ -99,6 +109,18 @@ class FalloutTerminalApp:
                 content = self.text_area.get('1.0', tk.END)
                 file.write(content)
             self.text_area.insert(tk.END, f"\nSaved file: {file_path}\n", "output")
+
+    def change_text_color(self):
+        color = colorchooser.askcolor(title="Choose text color")[1]
+        if color:
+            self.text_area.config(fg=color)
+            self.command_entry.config(fg=color)
+
+    def change_bg_color(self):
+        color = colorchooser.askcolor(title="Choose background color")[1]
+        if color:
+            self.text_area.config(bg=color)
+            self.command_entry.config(bg=color)
 
 if __name__ == "__main__":
     root = tk.Tk()
